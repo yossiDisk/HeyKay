@@ -138,15 +138,15 @@
   }
   .opt { color: var(--muted); font-weight: 400; font-size: 14px; }
   .hint { display: block; color: var(--muted); font-size: 14px; margin: -2px 0 8px; }
-  input[type="text"], select {
+  input[type="text"], input[type="url"], select {
     width: 100%; font: inherit; color: var(--text);
     background: #fff; border: 1.5px solid #CFC9E3; border-radius: var(--radius);
     padding: 12px 14px; min-height: 48px;
     transition: border-color .15s, box-shadow .15s;
   }
-  input[type="text"]::placeholder { color: #8C88A0; }
-  input[type="text"]:hover, select:hover { border-color: #A99FD6; }
-  input[type="text"]:focus, select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,46,255,.25); }
+  input[type="text"]::placeholder, input[type="url"]::placeholder { color: #8C88A0; }
+  input[type="text"]:hover, input[type="url"]:hover, select:hover { border-color: #A99FD6; }
+  input[type="text"]:focus, input[type="url"]:focus, select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,46,255,.25); }
   select {
     appearance: none; -webkit-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6880' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -162,7 +162,7 @@
   #goalOtherWrap { margin-top: 10px; }
   #goalOtherWrap[hidden] { display: none; }
 
-  .is-invalid input[type="text"], .is-invalid select { border-color: var(--error); background: var(--error-bg); }
+  .is-invalid input[type="text"], .is-invalid input[type="url"], .is-invalid select { border-color: var(--error); background: var(--error-bg); }
   .error { display: none; color: var(--error); font-size: 14px; font-weight: 500; margin-top: 6px; }
   .error:not(:empty) { display: flex; gap: 6px; align-items: flex-start; }
   .error:not(:empty)::before { content: "!"; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--error); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; margin-top: 2px; }
@@ -409,6 +409,29 @@
         <div class="error" id="e-audience" aria-live="polite"></div>
       </div>
 
+      <div class="field" data-field="website">
+        <label for="f-website">אתר או עמוד עסקי <span class="opt">(אופציונלי)</span></label>
+        <span class="hint" id="h-website">עוזר לנו להכיר את השירותים והשפה שלך</span>
+        <input type="url" id="f-website" name="website" inputmode="url" autocomplete="url" autocapitalize="none" autocorrect="off" spellcheck="false" maxlength="120" dir="ltr" style="text-align:left" placeholder="לדוגמה: studio-dana.co.il" aria-describedby="h-website e-website">
+        <div class="error" id="e-website" aria-live="polite"></div>
+      </div>
+
+      <div class="field" data-field="unique">
+        <label for="f-unique">מה מייחד אותך <span class="opt">(אופציונלי)</span></label>
+        <input type="text" id="f-unique" name="unique" maxlength="100" placeholder="לדוגמה: הסטודיו היחיד בחולון עם שיעורי ערב לאמהות" aria-describedby="e-unique">
+        <div class="error" id="e-unique" aria-live="polite"></div>
+      </div>
+
+      <fieldset class="field" data-field="frequency" role="radiogroup" aria-describedby="e-frequency">
+        <legend>כמה סרטונים בשבוע זה ריאלי בשבילך <span class="opt">(אופציונלי)</span></legend>
+        <div class="choices three">
+          <label class="choice"><input type="radio" name="frequency" value="1–2"><span class="box"><span class="ico" aria-hidden="true">🌱</span><span dir="ltr">1–2</span></span></label>
+          <label class="choice"><input type="radio" name="frequency" value="3–4"><span class="box"><span class="ico" aria-hidden="true">🔥</span><span dir="ltr">3–4</span></span></label>
+          <label class="choice"><input type="radio" name="frequency" value="כל יום"><span class="box"><span class="ico" aria-hidden="true">🚀</span><span>כל יום</span></span></label>
+        </div>
+        <div class="error" id="e-frequency" aria-live="polite"></div>
+      </fieldset>
+
       <div class="field" data-field="goal">
         <label for="f-goal">מה המטרה העיקרית</label>
         <select id="f-goal" name="goal" required aria-describedby="e-goal">
@@ -558,6 +581,15 @@ const CONFIG = {
   const len = (s) => Array.from(s).length;
   const HANDLE_RE = /^[A-Za-z0-9._]{2,24}$/;
 
+  // Domain with at least one dot; labels of letters/digits/hyphens (Hebrew IDN ok), TLD of 2+ letters.
+  const HOST_RE = /^(?=.{4,253}$)(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,61}[\p{L}\p{N}])?\.)+\p{L}{2,63}$/u;
+  // "https://Studio-Dana.co.il/" -> "studio-dana.co.il" (scheme and trailing "/" removed, host lowercased, path kept)
+  function normalizeWebsite(v) {
+    v = clean(v).replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+    const i = v.search(/[/?#]/);
+    return i === -1 ? v.toLowerCase() : v.slice(0, i).toLowerCase() + v.slice(i);
+  }
+
   function isMobile() {
     const ua = navigator.userAgent || "";
     if (/Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua)) return true;
@@ -618,6 +650,22 @@ const CONFIG = {
       if (len(v) > 80) return "עד 80 תווים בבקשה";
       return "";
     },
+    website() {
+      const raw = clean($("f-website").value);
+      if (!raw) return "";
+      const v = normalizeWebsite(raw);
+      if (len(v) > 100) return "עד 100 תווים בבקשה";
+      const host = v.split(/[/?#]/)[0];
+      if (!HOST_RE.test(host)) return "נראה שהכתובת לא תקינה. לדוגמה: studio-dana.co.il";
+      try { new URL("https://" + v); } catch (e) { return "נראה שהכתובת לא תקינה. לדוגמה: studio-dana.co.il"; }
+      return "";
+    },
+    unique() {
+      const v = clean($("f-unique").value);
+      if (len(v) > 100) return "עד 100 תווים בבקשה";
+      return "";
+    },
+    frequency() { return ""; },
     goal() {
       const v = goalSel.value;
       if (!v) return "נא לבחור מטרה";
@@ -699,9 +747,15 @@ const CONFIG = {
       "שם: " + clean(form.name.value),
       "עסק: " + clean(form.business.value),
       "קהל: " + clean(form.audience.value),
-      "מטרה: " + goal,
-      "מול מצלמה: " + clean(form.querySelector('input[name="camera"]:checked').value),
     ];
+    const website = clean($("f-website").value) ? normalizeWebsite($("f-website").value) : "";
+    const unique = clean($("f-unique").value);
+    const freqEl = form.querySelector('input[name="frequency"]:checked');
+    if (website) lines.push("אתר: " + website);
+    if (unique) lines.push("מייחד: " + unique);
+    lines.push("מטרה: " + goal);
+    lines.push("מול מצלמה: " + clean(form.querySelector('input[name="camera"]:checked').value));
+    if (freqEl) lines.push("סרטונים בשבוע: " + clean(freqEl.value));
     if (tiktok) lines.push("טיקטוק: @" + tiktok);
     if (insta) lines.push("אינסטגרם: @" + insta);
     lines.push("דמות ציבורית: " + clean(form.querySelector('input[name="public"]:checked').value));
