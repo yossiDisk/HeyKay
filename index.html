@@ -343,7 +343,7 @@
   </ul>
 
   <!-- ===== WhatsApp demo ===== -->
-  <section class="demo" aria-labelledby="demoTitle">
+  <section class="demo" id="demo" aria-labelledby="demoTitle">
     <h2 id="demoTitle">שולחים רעיון או צילום מסך, ו־Kay הופך אותו לסרטון</h2>
     <div class="chat" role="img" aria-label="הדמיה של שיחת וואטסאפ עם Hey Kay: הלקוחה שולחת צילום מסך של מחירון חדש ושואלת אם אפשר לעשות מזה משהו. Kay מציע רעיון לסרטון של 25 שניות בלי פנים, עם הוק ותסריט צילום, ובהמשך מחזיר סרטון ערוך עם כתוביות וכותרת, מוכן להעלאה.">
       <div class="chat-head">
@@ -754,8 +754,11 @@ const CONFIG = {
     $("blockedLink").href = lastUrl;
     $("blockedNote").hidden = true;
     $("formCard").hidden = true;
+    $("demo").hidden = true;
     $("success").hidden = false;
-    $("success").scrollIntoView({ block: "start" });
+    // Instant jump (not smooth) so the success card sits at the top of the viewport.
+    const top = $("success").getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top: Math.max(0, top), behavior: "instant" });
     $("successTitle").focus({ preventScroll: true });
   }
 
