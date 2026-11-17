@@ -157,6 +157,7 @@
   .handle input { padding-left: 36px; direction: ltr; text-align: left; }
   .ltr { direction: ltr; text-align: left; }
   .next { margin-top: 18px; }
+  .hint-under { display: block; color: var(--muted); font-size: 14px; margin-top: 6px; }
 
   .choices { display: grid; gap: 10px; border: 0; padding: 0; margin: 0; min-width: 0; }
   .choice { position: relative; display: block; cursor: pointer; }
@@ -169,6 +170,11 @@
   .choice input:checked + .box { border-color: var(--purple); background: #F1ECFF; box-shadow: inset 0 0 0 1px var(--purple); }
   .choice input:focus-visible + .box { box-shadow: var(--focus); }
   #goalOtherWrap { margin-top: 10px; }
+  /* multi-select: a square tick at the end of the card */
+  .choice.multi .txt { flex: 1; }
+  .choice .tick { width: 24px; height: 24px; border-radius: 7px; border: 2px solid #B9B2D6; flex: none; display: grid; place-items: center; color: #fff; font-size: 15px; font-weight: 700; transition: background .15s, border-color .15s; }
+  .choice input:checked + .box .tick { background: var(--purple); border-color: var(--purple); }
+  .choice input:checked + .box .tick::after { content: "✓"; }
 
   /* value nudge shown right after an answer */
   .nudge { background: #fff; border-radius: 12px; padding: 10px 12px; margin-top: 14px; font-size: 15px; display: flex; gap: 8px; box-shadow: 0 2px 10px rgba(36,22,79,.06); }
@@ -258,7 +264,7 @@
 
     <div class="cta-bar" id="ctaBar">
       <button type="button" class="btn" id="startBtn">בואו נבנה לך תוכנית סרטונים ←</button>
-      <p class="cta-meta">7 שאלות קצרות · פחות מדקה · בלי התחייבות</p>
+      <p class="cta-meta">8 שאלות קצרות · בערך דקה · בלי התחייבות</p>
     </div>
 
     <section class="demo" aria-labelledby="demoTitle">
@@ -320,9 +326,21 @@
         <button type="submit" class="btn next">המשך</button>
       </section>
 
-      <!-- 2. business -->
+      <!-- 2. business name -->
+      <section class="step" data-step="bizname" hidden>
+        <h2 class="q" tabindex="-1"><label for="f-bizname"><span class="nm"></span>איך קוראים לעסק שלך?</label></h2>
+        <p class="why"><span aria-hidden="true">🔎</span><span>Kay יעשה תחקיר על העסק, כדי שהרעיונות יתבססו על מה שאת/ה באמת מציע/ה.</span></p>
+        <div class="field" data-field="bizname">
+          <input type="text" id="f-bizname" name="bizname" autocomplete="organization" maxlength="60" enterkeyhint="next" placeholder="לדוגמה: סטודיו דנה" aria-describedby="h-bizname e-bizname">
+          <span class="hint-under" id="h-bizname">אין שם לעסק? אפשר לכתוב את השם המלא שלך.</span>
+          <div class="error" id="e-bizname" aria-live="polite"></div>
+        </div>
+        <button type="submit" class="btn next">המשך</button>
+      </section>
+
+      <!-- 3. what the business does -->
       <section class="step" data-step="business" hidden>
-        <h2 class="q" tabindex="-1"><label for="f-business"><span class="nm"></span>מה העסק שלך עושה?</label></h2>
+        <h2 class="q" tabindex="-1"><label for="f-business">ומה <span class="bn">העסק</span> עושה?</label></h2>
         <p class="why"><span aria-hidden="true">🎯</span><span>כל רעיון ייכתב במיוחד לתחום שלך, לא תבנית כללית.</span></p>
         <div class="field" data-field="business">
           <input type="text" id="f-business" name="business" maxlength="80" enterkeyhint="next" placeholder="לדוגמה: סטודיו לפילאטיס בחולון" aria-describedby="e-business">
@@ -345,22 +363,22 @@
       <!-- 4. goal -->
       <section class="step" data-step="goal" hidden>
         <h2 class="q" tabindex="-1" id="q-goal">מה הכי חשוב לך עכשיו?</h2>
-        <p class="why"><span aria-hidden="true">📊</span><span>כל סרטון יכוון למטרה הזאת, והדוח בערב ימדוד אותה.</span></p>
+        <p class="why"><span aria-hidden="true">📊</span><span>אפשר לבחור כמה. כל סרטון יכוון למטרות האלה, והדוח בערב ימדוד אותן.</span></p>
         <div class="field" data-field="goal">
-          <fieldset class="choices" role="radiogroup" aria-labelledby="q-goal" aria-describedby="e-goal">
-            <label class="choice"><input type="radio" name="goal" value="יותר לקוחות חדשים"><span class="box"><span class="ico" aria-hidden="true">🧲</span><span class="txt">יותר לקוחות חדשים</span></span></label>
-            <label class="choice"><input type="radio" name="goal" value="יותר הרשמות / פניות"><span class="box"><span class="ico" aria-hidden="true">📩</span><span class="txt">יותר הרשמות / פניות</span></span></label>
-            <label class="choice"><input type="radio" name="goal" value="חשיפה למותג"><span class="box"><span class="ico" aria-hidden="true">📣</span><span class="txt">חשיפה למותג</span></span></label>
-            <label class="choice"><input type="radio" name="goal" value="מכירות של מוצר מסוים"><span class="box"><span class="ico" aria-hidden="true">🛍️</span><span class="txt">מכירות של מוצר מסוים</span></span></label>
-            <label class="choice"><input type="radio" name="goal" value="__other"><span class="box"><span class="ico" aria-hidden="true">✏️</span><span class="txt">משהו אחר</span></span></label>
+          <fieldset class="choices" aria-labelledby="q-goal" aria-describedby="e-goal">
+            <label class="choice multi"><input type="checkbox" name="goal" value="יותר לקוחות חדשים"><span class="box"><span class="ico" aria-hidden="true">🧲</span><span class="txt">יותר לקוחות חדשים</span><span class="tick" aria-hidden="true"></span></span></label>
+            <label class="choice multi"><input type="checkbox" name="goal" value="יותר הרשמות / פניות"><span class="box"><span class="ico" aria-hidden="true">📩</span><span class="txt">יותר הרשמות / פניות</span><span class="tick" aria-hidden="true"></span></span></label>
+            <label class="choice multi"><input type="checkbox" name="goal" value="חשיפה למותג"><span class="box"><span class="ico" aria-hidden="true">📣</span><span class="txt">חשיפה למותג</span><span class="tick" aria-hidden="true"></span></span></label>
+            <label class="choice multi"><input type="checkbox" name="goal" value="מכירות של מוצר מסוים"><span class="box"><span class="ico" aria-hidden="true">🛍️</span><span class="txt">מכירות של מוצר מסוים</span><span class="tick" aria-hidden="true"></span></span></label>
+            <label class="choice multi"><input type="checkbox" name="goal" value="__other" id="goalOtherCb"><span class="box"><span class="ico" aria-hidden="true">✏️</span><span class="txt">משהו אחר</span><span class="tick" aria-hidden="true"></span></span></label>
           </fieldset>
           <div id="goalOtherWrap" hidden>
-            <label for="f-goalOther" class="sr-only">מה המטרה?</label>
+            <label for="f-goalOther" class="sr-only">מה המטרה האחרת?</label>
             <input type="text" id="f-goalOther" name="goalOther" maxlength="60" enterkeyhint="next" placeholder="כתבו בקצרה מה המטרה" aria-describedby="e-goal">
-            <button type="submit" class="btn next">המשך</button>
           </div>
           <div class="error" id="e-goal" aria-live="polite"></div>
         </div>
+        <button type="submit" class="btn next" id="goalNext">המשך</button>
       </section>
 
       <!-- 5. camera -->
@@ -536,16 +554,21 @@ const CONFIG = {
     return "";
   }
   const firstName = () => clean($("f-name").value).split(" ")[0];
-  const goalValue = () => { const g = checked("goal"); if (!g) return ""; return g.value === "__other" ? clean($("f-goalOther").value) : g.value; };
+  const goalBoxes = () => Array.from(form.querySelectorAll('input[name="goal"]:checked'));
+  const otherGoal = () => $("goalOtherCb").checked;
+  // Multiple goals go on one "מטרה:" line, comma separated, in the order shown on screen.
+  const goalValue = () => goalBoxes().map((b) => b.value === "__other" ? clean($("f-goalOther").value) : b.value).filter(Boolean).join(", ");
+  const bizName = () => clean($("f-bizname").value);
 
   /* ---------- validators (per field) ---------- */
   const validators = {
     name() { const v = clean($("f-name").value); if (!v) return "נא לכתוב את השם"; if (len(v) < 2) return "לפחות 2 תווים בבקשה"; if (len(v) > 40) return "עד 40 תווים בבקשה"; return ""; },
+    bizname() { const v = bizName(); if (!v) return "נא לכתוב את שם העסק"; if (len(v) < 2) return "לפחות 2 תווים בבקשה"; if (len(v) > 60) return "עד 60 תווים בבקשה"; return ""; },
     business() { const v = clean($("f-business").value); if (!v) return "נא לכתוב במה העסק עוסק"; if (len(v) < 3) return "לפחות 3 תווים בבקשה"; if (len(v) > 80) return "עד 80 תווים בבקשה"; return ""; },
     audience() { const v = clean($("f-audience").value); if (!v) return "נא לכתוב מי הלקוחות שלך"; if (len(v) < 2) return "לפחות 2 תווים בבקשה"; if (len(v) > 80) return "עד 80 תווים בבקשה"; return ""; },
     goal() {
-      const g = checked("goal"); if (!g) return "נא לבחור מטרה";
-      if (g.value === "__other") { const o = clean($("f-goalOther").value); if (!o) return "נא לכתוב מה המטרה"; if (len(o) < 2) return "לפחות 2 תווים בבקשה"; if (len(o) > 60) return "עד 60 תווים בבקשה"; }
+      if (!goalBoxes().length) return "נא לבחור לפחות מטרה אחת";
+      if (otherGoal()) { const o = clean($("f-goalOther").value); if (!o) return "נא לכתוב מה המטרה"; if (len(o) < 2) return "לפחות 2 תווים בבקשה"; if (len(o) > 60) return "עד 60 תווים בבקשה"; }
       return "";
     },
     camera() { return checked("camera") ? "" : "נא לבחור אחת מהאפשרויות"; },
@@ -575,13 +598,14 @@ const CONFIG = {
   // Progress moves fast at the start and slows near the end ("fast-to-slow"), and starts
   // above zero (endowed progress): the person already "did" something by tapping the CTA.
   const STEPS = [
-    { id: "name",      fields: ["name"],                          pct: 14, label: "מתחילים 👋" },
-    { id: "business",  fields: ["business"],                      pct: 32, label: "יופי, ממשיכים" },
-    { id: "audience",  fields: ["audience"],                      pct: 47, label: "כמעט חצי דרך" },
-    { id: "goal",      fields: ["goal"],                          pct: 60, label: "עברנו את החצי 💪", auto: true },
-    { id: "camera",    fields: ["camera"],                        pct: 71, label: "עוד קצת", auto: true },
-    { id: "frequency", fields: [],                                pct: 80, label: "עוד 2 שאלות", auto: true },
-    { id: "online",    fields: ["tiktok", "instagram", "website"], pct: 88, label: "שאלה אחרונה" },
+    { id: "name",      fields: ["name"],                          pct: 12, label: "מתחילים 👋" },
+    { id: "bizname",   fields: ["bizname"],                       pct: 27, label: "יופי, ממשיכים" },
+    { id: "business",  fields: ["business"],                      pct: 39, label: "הולך מהר" },
+    { id: "audience",  fields: ["audience"],                      pct: 50, label: "חצי דרך" },
+    { id: "goal",      fields: ["goal"],                          pct: 60, label: "עברנו את החצי 💪", focusQ: true },
+    { id: "camera",    fields: ["camera"],                        pct: 70, label: "עוד קצת", auto: true },
+    { id: "frequency", fields: [],                                pct: 79, label: "עוד 2 שאלות", auto: true },
+    { id: "online",    fields: ["tiktok", "instagram", "website"], pct: 87, label: "שאלה אחרונה" },
     { id: "building",  fields: [],                                pct: 94, label: "" },
     { id: "plan",      fields: ["consent"],                       pct: 97, label: "התוכנית מוכנה ✨" },
   ];
@@ -599,12 +623,13 @@ const CONFIG = {
     form.querySelectorAll(".step").forEach((el) => { el.hidden = el.dataset.step !== s.id; });
     $("backBtn").disabled = false;
     setProgress(s.pct, s.label);
-    if (s.id === "business") form.querySelector('[data-step="business"] .nm').textContent = firstName() ? firstName() + ", " : "";
+    if (s.id === "bizname") form.querySelector('[data-step="bizname"] .nm').textContent = firstName() ? firstName() + ", " : "";
+    if (s.id === "business") form.querySelector('[data-step="business"] .bn').textContent = bizName() || "העסק";
     if (push) { try { history.pushState({ step: i }, ""); } catch (e) {} }
     window.scrollTo(0, 0);
     const sec = form.querySelector('[data-step="' + s.id + '"]');
     const input = sec.querySelector('input[type="text"]:not([id="f-goalOther"]), input[type="url"]');
-    if (input && !s.auto) input.focus({ preventScroll: true }); else sec.querySelector(".q").focus({ preventScroll: true });
+    if (input && !s.auto && !s.focusQ) input.focus({ preventScroll: true }); else sec.querySelector(".q").focus({ preventScroll: true });
     if (s.id === "building") runBuilding();
   }
 
@@ -614,7 +639,7 @@ const CONFIG = {
     s.fields.forEach((k) => { if (!validate(k) && !firstBad) firstBad = k; });
     if (firstBad) {
       const wrap = form.querySelector('[data-field="' + firstBad + '"]');
-      const el = (firstBad === "goal" && checked("goal") && checked("goal").value === "__other") ? $("f-goalOther") : (wrap.querySelector("input:checked") || wrap.querySelector("input"));
+      const el = (firstBad === "goal" && otherGoal()) ? $("f-goalOther") : (wrap.querySelector("input:checked") || wrap.querySelector("input"));
       if (el) el.focus();
       return;
     }
@@ -672,11 +697,6 @@ const CONFIG = {
   form.querySelectorAll('.choices input[type="radio"]').forEach((r) => {
     r.addEventListener("click", (e) => {
       clearTimeout(autoTimer);
-      if (r.name === "goal") {
-        const other = r.value === "__other";
-        $("goalOtherWrap").hidden = !other;
-        if (other) { $("f-goalOther").focus(); return; }
-      }
       if (validators[r.name]) validate(r.name);
       // Arrow keys also fire "click" on radios (with detail 0): keyboard users move freely
       // and press Enter to continue; only a real tap/click auto-advances.
@@ -684,12 +704,18 @@ const CONFIG = {
     });
   });
 
+  // multi-select goal: "משהו אחר" opens a text box; the person presses "המשך" when done
+  $("goalOtherCb").addEventListener("change", () => {
+    $("goalOtherWrap").hidden = !otherGoal();
+    if (otherGoal()) $("f-goalOther").focus();
+  });
+
   /* ---------- "building your plan" + plan ---------- */
   function freqToPilot(f) { return f === "1–2" ? 6 : f === "3–4" ? 12 : f === "כל יום" ? 18 : 0; }
   function runBuilding() {
     const list = $("buildList");
     const items = [
-      "קוראים על " + clean($("f-business").value),
+      "עושים תחקיר על " + bizName(),
       "מתאימים רעיונות ל" + clean($("f-audience").value),
       "בונים לוח סרטונים",
     ];
@@ -705,8 +731,8 @@ const CONFIG = {
     const freq = checked("frequency") ? checked("frequency").value : "";
     const cam = checked("camera").value;
     const rows = [
-      ["☀️", "כל בוקר (א׳–ה׳)", "רעיון לסרטון ל" + clean($("f-business").value)],
-      ["🎯", "המטרה", goalValue()],
+      ["☀️", "כל בוקר (א׳–ה׳)", "רעיון לסרטון ל" + bizName() + ", " + clean($("f-business").value)],
+      ["🎯", goalBoxes().length > 1 ? "המטרות" : "המטרה", goalValue()],
       ["🎥", "הסגנון", cam],
       ["✂️", "עריכה", "שולחים צילום, מקבלים סרטון עם כתוביות"],
       ["📊", "כל ערב", "דוח קצר: מה עבד ומה פחות"],
@@ -726,6 +752,7 @@ const CONFIG = {
       "היי Kay! נרשמתי לפיילוט 🙌",
       "קוד: " + code,
       "שם: " + clean($("f-name").value),
+      "שם העסק: " + bizName(),
       "עסק: " + clean($("f-business").value),
       "קהל: " + clean($("f-audience").value),
     ];
