@@ -393,6 +393,7 @@
           </fieldset>
           <div class="error" id="e-camera" aria-live="polite"></div>
         </div>
+        <button type="submit" class="btn next">המשך</button>
       </section>
 
       <!-- 6. frequency (optional) -->
@@ -406,6 +407,7 @@
             <label class="choice"><input type="radio" name="frequency" value="כל יום"><span class="box"><span class="ico" aria-hidden="true">🚀</span><span class="txt">כל יום<small>הכי הרבה חשיפה</small></span></span></label>
           </fieldset>
         </div>
+        <button type="submit" class="btn next">המשך</button>
         <button type="button" class="skip" data-skip>עוד לא יודע/ת, דלגו</button>
       </section>
 
@@ -692,15 +694,23 @@ const CONFIG = {
   });
   ["f-tiktok", "f-instagram"].forEach((id) => $(id).addEventListener("input", (e) => { if (e.target.value.startsWith("@")) e.target.value = e.target.value.replace(/^@+/, ""); }));
 
-  // tap-to-answer: choice steps advance by themselves
+  // tap-to-answer: choice steps advance by themselves.
+  // Arrow keys also fire "click" on radios, so we only auto-advance when a pointer
+  // (finger or mouse) went down on a choice card just before. We can't use event.detail
+  // for this: tapping the <label> forwards a synthetic click with detail 0 on phones.
   let autoTimer = null;
+  let lastPointer = 0;
+  form.addEventListener("pointerdown", (e) => { if (e.target.closest(".choice")) lastPointer = Date.now(); }, true);
+  form.addEventListener("touchstart", (e) => { if (e.target.closest(".choice")) lastPointer = Date.now(); }, { capture: true, passive: true });
+  form.addEventListener("keydown", () => { lastPointer = 0; }, true); // any key = keyboard user
   form.querySelectorAll('.choices input[type="radio"]').forEach((r) => {
-    r.addEventListener("click", (e) => {
+    r.addEventListener("click", () => {
       clearTimeout(autoTimer);
       if (validators[r.name]) validate(r.name);
-      // Arrow keys also fire "click" on radios (with detail 0): keyboard users move freely
-      // and press Enter to continue; only a real tap/click auto-advances.
-      if (e.detail > 0) autoTimer = setTimeout(next, reduceMotion ? 0 : 280);
+      if (Date.now() - lastPointer < 1000) {
+        lastPointer = 0; // one tap = one advance
+        autoTimer = setTimeout(next, reduceMotion ? 0 : 280);
+      }
     });
   });
 
